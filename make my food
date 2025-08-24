@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Make My Food • Davanagere</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>🍴</text></svg>">
+  <style>
+    :root{
+      --brand:#e30606; /* red */
+      --brand-dark:#a90404;
+      --bg:#fff8f8;
+      --card:#ffffff;
+      --text:#222;
+      --muted:#6b6b6b;
+      --success:#1f9d55;
+      --warning:#c27803;
+      --shadow:0 10px 25px rgba(0,0,0,.12);
+    }
+    [data-theme="dark"]{
+      --bg:#0e0e0f; --card:#17181a; --text:#eee; --muted:#9aa0a6; --shadow:0 10px 25px rgba(0,0,0,.45);
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Noto Sans, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji"; background:var(--bg); color:var(--text)}
+    a{color:inherit}
+    .container{max-width:1200px; margin:0 auto; padding:0 16px}
+    .btn{appearance:none; border:none; background:var(--brand); color:#fff; padding:12px 16px; border-radius:12px; cursor:pointer; box-shadow:var(--shadow); transition:.2s}
+    .btn:hover{background:var(--brand-dark); transform:translateY(-1px)}
+    .btn.ghost{background:transparent; color:var(--brand); border:2px solid var(--brand)}
+    .chip{display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px; background:#ffe5e5; color:#b10000; font-weight:600}
+    [data-theme="dark"] .chip{background:#2a0f10; color:#ffb3b3}
+    .badge{background:var(--brand); color:#fff; padding:4px 8px; border-radius:8px; font-size:.8rem}
+    .hidden{display:none!important}
+
+    /* Navbar */
+    .nav{position:sticky; top:0; z-index:50; background:linear-gradient(90deg,var(--brand),var(--brand-dark)); color:#fff; box-shadow:var(--shadow)}
+    .nav .wrap{display:flex; align-items:center; justify-content:space-between; padding:12px 0}
+    .nav .left{display:flex; align-items:center; gap:14px}
+    .logo{font-weight:800; font-size:1.25rem; letter-spacing:.3px}
+    .nav .links{display:flex; gap:18px; align-items:center}
+    .nav .links button{background:transparent; border:none; color:#fff; cursor:pointer; font-weight:600}
+    .theme-toggle{background:#ffffff22; border:none; color:#fff; padding:8px 10px; border-radius:10px; cursor:pointer}
+
+    /* Hero */
+    .hero{background:url('https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=1920&auto=format&fit=crop') center/cover no-repeat; position:relative}
+    .hero::after{content:""; position:absolute; inset:0; background:linear-gradient(to bottom, rgba(0,0,0,.55), rgba(0,0,0,.45));}
+    .hero .content{position:relative; z-index:1; padding:72px 0 56px; text-align:center; color:#fff}
+    .hero h1{font-size:2.2rem; margin:0 0 8px}
+    .hero p{opacity:.95}
+    .search{display:flex; gap:8px; justify-content:center; margin-top:18px}
+    .search input{width:min(540px,90%); padding:14px 16px; border-radius:12px; border:none}
+
+    /* Promo Banner */
+    .promo{background:#fff; margin-top:-24px; position:relative; z-index:2; box-shadow:var(--shadow); border-radius:14px; padding:10px}
+    [data-theme="dark"] .promo{background:#17181a}
+    .promo .slides{display:flex; overflow:auto; gap:12px; scroll-snap-type:x mandatory}
+    .promo .card{min-width:280px; flex:0 0 auto; scroll-snap-align:start; border-radius:12px; padding:14px; background:linear-gradient(135deg,#ffb3b3,#ffd1d1); color:#5c0000; box-shadow:var(--shadow)}
+    [data-theme="dark"] .promo .card{background:linear-gradient(135deg,#2b0b0c,#591316); color:#ffd6d6}
+
+    /* Layout */
+    .grid{display:grid; gap:18px}
+    .two{grid-template-columns:2fr 1fr}
+    @media (max-width: 980px){.two{grid-template-columns:1fr}}
+
+    /* Menu */
+    .section{padding:28px 0}
+    .section h2{margin:0 0 14px}
+    .toolbar{display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:12px}
+    select, input[type="number"], input[type="text"], textarea{background:var(--card); color:var(--text); border:1px solid #e9b3b3; padding:10px 12px; border-radius:10px}
+    [data-theme="dark"] select,[data-theme="dark"] input,[data-theme="dark"] textarea{border-color:#352224}
+
+    .cards{display:grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap:14px}
+    .food{background:var(--card); border:1px solid #ffd6d6; border-radius:16px; overflow:hidden; box-shadow:var(--shadow); display:flex; flex-direction:column}
+    .food img{width:100%; height:150px; object-fit:cover}
+    .food .meta{padding:12px}
+    .food .title{display:flex; justify-content:space-between; align-items:center; gap:8px}
+    .food .rating{font-size:.9rem; color:#ffb703}
+    .food .actions{display:flex; gap:8px; margin-top:10px}
+    .heart{background:#fff0f0; border:1px solid #ffc7c7; border-radius:10px; padding:8px 10px; cursor:pointer}
+    [data-theme="dark"] .heart{background:#2a0f10}
+
+    /* Cart */
+    .cart{position:sticky; top:88px; background:var(--card); border:1px solid #ffd6d6; padding:14px; border-radius:16px; box-shadow:var(--shadow)}
+    .cart h3{margin:0 0 10px}
+    .cart table{width:100%; border-collapse:collapse}
+    .cart th,.cart td{padding:8px; text-align:center; border-bottom:1px solid #eee}
+    .cart .totals{margin-top:8px; text-align:right}
+    .cart .qr{display:flex; gap:10px; align-items:center; margin-top:10px}
+    .cart .qr img{width:90px; height:90px}
+
+    /* Modals */
+    .modal{position:fixed; inset:0; background:rgba(0,0,0,.5); display:none; align-items:center; justify-content:center; padding:16px; z-index:60}
+    .dialog{background:var(--card); color:var(--text); width:min(500px,95vw); border-radius:16px; padding:18px; box-shadow:var(--shadow)}
+    .dialog h3{margin:0 0 10px}
+
+    /* Track Order */
+    .track{background:var(--card); border:1px solid #ffd6d6; border-radius:14px; padding:16px; box-shadow:var(--shadow)}
+    .steps{display:grid; grid-template-columns: repeat(4,1fr); gap:10px; margin-top:8px}
+    .step{background:#eee; padding:12px; border-radius:10px; text-align:center; font-weight:700}
+    [data-theme="dark"] .step{background:#202124}
+    .step.active{background:#ffcccc; color:#7c0000}
+    [data-theme="dark"] .step.active{background:#4b1c1f; color:#ffd6d6}
+
+    /* Profile */
+    .profile{display:grid; grid-template-columns:120px 1fr; gap:16px; align-items:center}
+    .avatar{width:120px; height:120px; border-radius:50%; object-fit:cover; border:3px solid var(--brand)}
+
+    /* Footer */
+    footer{margin-top:40px; padding:18px 0; color:#fff; background:var(--brand-dark); text-align:center}
+
+    /* Small helpers */
+    .muted{color:var(--muted)}
+    .mt8{margin-top:8px} .mt12{margin-top:12px} .mt16{margin-top:16px}
+  </style>
+</head>
+<body>
+  <!-- NAV -->
+  <div class="nav">
+    <div class="container wrap">
+      <div class="left">
+        <div class="logo">🍴 Make My Food</div>
+        <span class="chip">Only in Davanagere • No Cancel</span>
+      </div>
+      <div class="links">
+        <button onclick="showPage('home')">Home</button>
+        <button onclick="showPage('menu')">Menu</button>
+        <button onclick="showPage('track')">Track Order</button>
+        <button onclick="showPage('info')">Info</button>
+        <button onclick="showPage('profile')" id="profileBtn">Profile</button>
+        <button class="theme-toggle" id="themeBtn">🌙</button>
+        <button class="theme-toggle" id="loginBtn" onclick="openAuth('login')">Login</button>
+        <button class="theme-toggle hidden" id="logoutBtn" onclick="logout()">Logout</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- HERO -->
+  <section class="hero" id="home">
+    <div class="container content">
+      <h1>Delicious Veg Dishes in Davanagere</h1>
+      <p>UPI only • Free delivery above ₹299 • Delivery in 30–45 mins* </p>
+      <div class="search">
+        <input id="searchInput" placeholder="Search dish (e.g., gobi, noodles)" oninput="renderMenu()" />
+        <button class="btn" onclick="showPage('menu')">Browse Menu</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROMO -->
+  <div class="container">
+    <div class="promo mt16" aria-label="Promotions">
+      <div class="slides" id="promoSlides">
+        <div class="card"><div class="badge">🎉 Offer</div><h3>20% OFF on Special Gobi 65 today!</h3><p class="muted">Auto‑applies at checkout</p></div>
+        <div class="card"><div class="badge">🚚 Delivery</div><h3>Free Delivery on orders ₹299+</h3><p class="muted">Below that, ₹40 delivery charge</p></div>
+        <div class="card"><div class="badge">🔒 Policy</div><h3>No Cancellation</h3><p class="muted">Orders once placed cannot be cancelled</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN GRID: MENU + CART -->
+  <div class="container section two" id="menuWrap">
+    <main id="menu">
+      <h2>Menu</h2>
+      <div class="toolbar">
+        <select id="filter" onchange="renderMenu()">
+          <option value="all">All</option>
+          <option value="veg">Veg</option>
+          <option value="popular">Popular</option>
+          <option value="favorites">Favorites ❤</option>
+        </select>
+        <select id="sort" onchange="renderMenu()">
+          <option value="none">Sort</option>
+          <option value="plh">Price: Low → High</option>
+          <option value="phl">Price: High → Low</option>
+          <option value="rating">Rating: High → Low</option>
+        </select>
+        <span class="muted">Tap ❤ to save to wishlist</span>
+      </div>
+      <div class="cards" id="cards"></div>
+    </main>
+
+    <aside class="cart" id="cart">
+      <h3>Your Cart</h3>
+      <table>
+        <thead><tr><th>Item</th><th>₹</th><th>Qty</th><th>Total</th><th></th></tr></thead>
+        <tbody id="cartBody"></tbody>
+      </table>
+      <div class="totals" id="totals"></div>
+      <button class="btn mt12" onclick="checkout()">Checkout</button>
+      <div class="qr">
+        <img id="upiQR" alt="UPI QR">
+        <div>
+          <div class="muted">Pay via UPI only</div>
+          <div><strong id="upiId">8867250792@ptyes</strong></div>
+        </div>
+      </div>
+      <div class="muted mt8">Free delivery on ₹299+. Below that, ₹40 charge.</div>
+    </aside>
+  </div>
+
+  <!-- TRACK ORDER -->
+  <div class="container section" id="track" style="display:none">
+    <h2>Track Order</h2>
+    <div class="track">
+      <div>Order ID: <span id="trackOrderId" class="badge">—</span></div>
+      <div class="steps mt12">
+        <div class="step" id="s1">Preparing 🍳</div>
+        <div class="step" id="s2">Packed 📦</div>
+        <div class="step" id="s3">On the Way 🚴</div>
+        <div class="step" id="s4">Delivered ✅</div>
+      </div>
+      <div class="muted mt12">You’ll also get browser notifications if allowed.</div>
+    </div>
+  </div>
+
+  <!-- INFO -->
+  <div class="container section" id="info" style="display:none">
+    <h2>Restaurant Info</h2>
+    <div class="grid">
+      <div class="track">
+        <h3>About</h3>
+        <p>Make My Food is a pure-veg cloud kitchen in Davanagere serving fresh, wallet‑friendly Indo‑Chinese favorites. Payments via <strong>UPI only</strong>. <strong>No Cancel</strong> policy.</p>
+        <p class="muted">Hours: 11:00–22:30 • Phone: +91‑88672‑50792 • Email: adityarvirat@gmail.com</p>
+      </div>
+      <div class="track">
+        <h3>Location</h3>
+        <iframe style="width:100%; height:260px; border:0; border-radius:12px" loading="lazy" allowfullscreen
+          src="https://www.google.com/maps?q=Davanagere&output=embed"></iframe>
+      </div>
+      <div class="track">
+        <h3>Policies</h3>
+        <ul>
+          <li>Only in Davanagere city limits</li>
+          <li>Free delivery on orders ₹299 and above</li>
+          <li>₹40 delivery charge below ₹299</li>
+          <li>No order cancellation</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROFILE -->
+  <div class="container section" id="profile" style="display:none">
+    <h2>Your Profile</h2>
+    <div class="track">
+      <div class="profile">
+        <img id="avatar" class="avatar" src="https://api.dicebear.com/8.x/initials/svg?seed=Guest" alt="avatar">
+        <div>
+          <div><strong id="profName">Guest</strong></div>
+          <div class="muted" id="profEmail">Not logged in</div>
+          <label class="mt8">Update Photo: <input type="file" accept="image/*" onchange="uploadAvatar(event)"></label>
+          <label class="mt8">Saved Address:
+            <textarea id="profAddr" rows="3" placeholder="House / Street / Area"></textarea>
+          </label>
+          <button class="btn mt12" onclick="saveProfile()">Save Profile</button>
+        </div>
+      </div>
+      <hr class="mt16"/>
+      <h3 class="mt12">Order History</h3>
+      <div id="orderHistory" class="mt8 muted">No orders yet.</div>
+    </div>
+  </div>
+
+  <!-- AUTH MODAL -->
+  <div class="modal" id="auth">
+    <div class="dialog">
+      <h3 id="authTitle">Login</h3>
+      <div class="grid" style="grid-template-columns:1fr; gap:8px">
+        <input id="authName" placeholder="Full Name" class="hidden" />
+        <input id="authEmail" type="email" placeholder="Email" />
+        <input id="authPass" type="password" placeholder="Password" />
+        <button class="btn" onclick="handleAuth()" id="authBtn">Continue</button>
+        <button class="btn ghost" onclick="toggleAuth()" id="switchBtn">Don't have an account? Sign up</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- REVIEW MODAL -->
+  <div class="modal" id="reviewModal">
+    <div class="dialog">
+      <h3>Add your review</h3>
+      <div id="revFor" class="muted"></div>
+      <div class="mt12">
+        <label>Rating:
+          <select id="revRating">
+            <option>5</option><option>4</option><option>3</option><option>2</option><option>1</option>
+          </select>
+        </label>
+      </div>
+      <textarea id="revText" rows="3" placeholder="Write a short review" class="mt8" ></textarea>
+      <button class="btn mt12" onclick="submitReview()">Submit</button>
+    </div>
+  </div>
+
+  <footer>
+    © 2025 Make My Food • UPI: 8867250792@ptyes • Only in Davanagere • No Cancel
+  </footer>
+
+  <script>
+    // ====== CONFIG ======
+    const UPI_ID = '8867250792@ptyes';
+    document.getElementById('upiQR').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=${encodeURIComponent(UPI_ID)}&pn=Make%20My%20Food`;
+
+    // ====== STATE ======
+    let app = {
+      theme: localStorage.getItem('theme') || 'light',
+      user: JSON.parse(localStorage.getItem('mmf_user')||'null'),
+      cart: JSON.parse(localStorage.getItem('mmf_cart')||'[]'),
+      favorites: JSON.parse(localStorage.getItem('mmf_fav')||'[]'),
+      reviews: JSON.parse(localStorage.getItem('mmf_reviews')||'{}'), // {id:[{u,r,t}]}
+      lastOrder: JSON.parse(localStorage.getItem('mmf_lastOrder')||'null'),
+      orderHistory: JSON.parse(localStorage.getItem('mmf_history')||'[]'),
+      authMode: 'login',
+      reviewFor: null
+    };
+
+    // ====== DATA ======
+    const items = [
+      {id:'manchurian', name:'Cabbage Gobi Manchurian', price:80, veg:true, popular:true, img:'https://www.cookwithkushi.com/wp-content/uploads/2015/12/IMG_7352_.jpg'},
+      {id:'gobi65', name:'Special Gobi 65', price:80, veg:true, popular:true, img:'https://www.indianhealthyrecipes.com/wp-content/uploads/2021/07/gobi-65-recipe.jpg'},
+      {id:'noodles', name:'Veg Fried Noodles', price:80, veg:true, popular:false, img:'https://www.vegrecipesofindia.com/wp-content/uploads/2021/04/veg-noodles-recipe-1.jpg'},
+      {id:'gobinoodles', name:'Special Gobi Noodles', price:80, veg:true, popular:false, img:'https://www.indianhealthyrecipes.com/wp-content/uploads/2021/07/gobi-noodles.jpg'},
+      {id:'friedrice', name:'Fried Vegetable Rice', price:80, veg:true, popular:false, img:'https://www.indianhealthyrecipes.com/wp-content/uploads/2022/06/veg-fried-rice.jpg'},
+      {id:'gobirice', name:'Special Gobi Rice', price:80, veg:true, popular:false, img:'https://www.cookclickndevour.com/wp-content/uploads/2017/11/gobi-fried-rice-recipe.jpg'}
+    ];
+
+    // ====== UTIL ======
+    const sel = id => document.getElementById(id);
+    function save(){ localStorage.setItem('mmf_cart', JSON.stringify(app.cart)); localStorage.setItem('mmf_fav', JSON.stringify(app.favorites)); localStorage.setItem('mmf_reviews', JSON.stringify(app.reviews)); localStorage.setItem('mmf_history', JSON.stringify(app.orderHistory)); localStorage.setItem('mmf_lastOrder', JSON.stringify(app.lastOrder)); }
+    function currency(n){ return `₹${n}` }
+    function notify(msg){
+      try{
+        if(Notification && Notification.permission==='granted'){ new Notification('Make My Food',{ body: msg, icon: 'https://api.dicebear.com/8.x/initials/svg?seed=MMF' }); }
+        else if(Notification && Notification.permission!=='denied'){ Notification.requestPermission().then(p=>{ if(p==='granted') new Notification('Make My Food',{ body: msg }); }); }
+      }catch(e){ /* ignore */ }
+    }
+
+    // ====== THEME ======
+    function applyTheme(){ document.documentElement.setAttribute('data-theme', app.theme==='dark'?'dark':'light'); sel('themeBtn').textContent = app.theme==='dark'?'☀️':'🌙'; localStorage.setItem('theme', app.theme); }
+    sel('themeBtn').onclick = ()=>{ app.theme = app.theme==='dark'?'light':'dark'; applyTheme(); };
+
+    // ====== NAV / PAGES ======
+    function showPage(id){ ['home','menuWrap','track','info','profile'].forEach(pid=>{ const el = sel(pid==='menuWrap'?'menuWrap':pid); if(!el) return; el.style.display = (pid===id || (id==='menu'&&pid==='menuWrap'))? (pid==='home'?'block':'grid') : 'none'; }); window.scrollTo({top:0, behavior:'smooth'}); }
+
+    // ====== AUTH ======
+    function openAuth(mode='login'){ app.authMode = mode; sel('auth').style.display='flex'; sel('authTitle').textContent = mode==='login'?'Login':'Sign up'; sel('switchBtn').textContent = mode==='login'?"Don't have an account? Sign up":"Already have an account? Login"; sel('authName').classList.toggle('hidden', mode==='login'); }
+    function toggleAuth(){ openAuth(app.authMode==='login'?'signup':'login'); }
+    function handleAuth(){
+      const email = sel('authEmail').value.trim(); const pass = sel('authPass').value.trim();
+      if(app.authMode==='signup'){
+        const name = sel('authName').value.trim()||'Customer';
+        const users = JSON.parse(localStorage.getItem('mmf_users')||'{}');
+        if(users[email]) return alert('Account already exists. Try login.');
+        users[email] = {name, pass, avatar:'', address:''};
+        localStorage.setItem('mmf_users', JSON.stringify(users));
+        alert('Signup successful! You can login now.');
+        openAuth('login');
+      }else{
+        const users = JSON.parse(localStorage.getItem('mmf_users')||'{}');
+        if(!users[email] || users[email].pass!==pass) return alert('Invalid credentials');
+        app.user = { email, ...users[email] };
+        localStorage.setItem('mmf_user', JSON.stringify(app.user));
+        sel('auth').style.display='none';
+        applyUser();
+        notify('Welcome back, '+app.user.name+'!');
+      }
+    }
+    function logout(){ app.user=null; localStorage.removeItem('mmf_user'); applyUser(); }
+    function applyUser(){
+      const logged = !!app.user;
+      sel('loginBtn').classList.toggle('hidden', logged);
+      sel('logoutBtn').classList.toggle('hidden', !logged);
+      sel('profileBtn').textContent = logged? (app.user.name.split(' ')[0]+' • Profile') : 'Profile';
+      // Profile fill
+      sel('profName').textContent = logged? app.user.name : 'Guest';
+      sel('profEmail').textContent = logged? app.user.email : 'Not logged in';
+      sel('profAddr').value = logged? (app.user.address||'') : '';
+      sel('avatar').src = (logged && app.user.avatar) ? app.user.avatar : 'https://api.dicebear.com/8.x/initials/svg?seed='+(logged?encodeURIComponent(app.user.name):'Guest');
+    }
+    function uploadAvatar(ev){ const file = ev.target.files[0]; if(!file) return; const r=new FileReader(); r.onload=()=>{ if(!app.user){ alert('Login first'); return; } app.user.avatar=r.result; localStorage.setItem('mmf_user', JSON.stringify(app.user)); const users=JSON.parse(localStorage.getItem('mmf_users')||'{}'); users[app.user.email]= {...users[app.user.email], avatar:r.result }; localStorage.setItem('mmf_users', JSON.stringify(users)); applyUser(); }; r.readAsDataURL(file); }
+    function saveProfile(){ if(!app.user) return alert('Login first'); app.user.address = sel('profAddr').value; localStorage.setItem('mmf_user', JSON.stringify(app.user)); const users=JSON.parse(localStorage.getItem('mmf_users')||'{}'); users[app.user.email]= {...users[app.user.email], address: app.user.address }; localStorage.setItem('mmf_users', JSON.stringify(users)); alert('Profile saved'); }
+
+    // Close modals on backdrop click
+    document.querySelectorAll('.modal').forEach(m=> m.addEventListener('click', e=>{ if(e.target===m) m.style.display='none'; }));
+
+    // ====== MENU RENDER ======
+    function getAvgRating(id){ const arr = app.reviews[id]||[]; if(!arr.length) return {avg:0,count:0}; const avg = (arr.reduce((a,b)=>a+Number(b.r),0)/arr.length); return {avg:Math.round(avg*10)/10, count: arr.length}; }
+
+    function renderMenu(){
+      const wrap = sel('cards'); wrap.innerHTML='';
+      const q = sel('searchInput').value.trim().toLowerCase();
+      const f = sel('filter').value; const s = sel('sort').value;
+      let list = items.filter(it=> it.name.toLowerCase().includes(q));
+      if(f==='veg') list = list.filter(i=>i.veg);
+      if(f==='popular') list = list.filter(i=>i.popular);
+      if(f==='favorites') list = list.filter(i=> app.favorites.includes(i.id));
+      if(s==='plh') list.sort((a,b)=>a.price-b.price);
+      if(s==='phl') list.sort((a,b)=>b.price-a.price);
+      if(s==='rating') list.sort((a,b)=> getAvgRating(b.id).avg - getAvgRating(a.id).avg );
+
+      for(const it of list){
+        const fav = app.favorites.includes(it.id);
+        const {avg,count} = getAvgRating(it.id);
+        const card = document.createElement('div'); card.className='food';
+        card.innerHTML = `
+          <img src="${it.img}" alt="${it.name}">
+          <div class="meta">
+            <div class="title"><strong>${it.name}</strong> <span class="badge">₹${it.price}</span></div>
+            <div class="muted">Pure Veg • Indo‑Chinese</div>
+            <div class="rating">⭐ ${avg||'—'} <span class="muted">(${count})</span></div>
+            <div class="actions">
+              <button class="btn" onclick="addToCart('${it.id}')">Add</button>
+              <button class="heart" onclick="toggleFav('${it.id}')">${fav?'❤️':'🤍'} Wish</button>
+              <button class="heart" onclick="openReview('${it.id}','${it.name}')">✍️ Review</button>
+            </div>
+          </div>`;
+        wrap.appendChild(card);
+      }
+    }
+
+    function toggleFav(id){ const i = app.favorites.indexOf(id); if(i>-1) app.favorites.splice(i,1); else app.favorites.push(id); save(); renderMenu(); }
+
+    // ====== CART ======
+    function addToCart(id){ const item = items.find(x=>x.id===id); const found = app.cart.find(x=>x.id===id); if(found) found.qty++; else app.cart.push({id, qty:1}); save(); renderCart(); notify(item.name+" added to cart"); }
+    function removeFromCart(id){ app.cart = app.cart.filter(x=>x.id!==id); save(); renderCart(); }
+    function setQty(id, q){ const it = app.cart.find(x=>x.id===id); if(!it) return; it.qty = Math.max(1, Number(q)||1); save(); renderCart(); }
+    function computeTotals(){
+      let subtotal=0; for(const c of app.cart){ const item=items.find(i=>i.id===c.id); subtotal += item.price * c.qty; }
+      const delivery = subtotal>0 && subtotal<299 ? 40 : 0;
+      // Promo example: 20% OFF on gobi65
+      const promo = app.cart.some(c=>c.id==='gobi65') ? Math.floor(subtotal*0.20) : 0;
+      const total = Math.max(0, subtotal - promo) + delivery;
+      return {subtotal, promo, delivery, total};
+    }
+    function renderCart(){
+      const tb = sel('cartBody'); tb.innerHTML='';
+      for(const c of app.cart){ const it=items.find(i=>i.id===c.id); const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${it.name}</td><td>${it.price}</td><td><input type="number" min="1" value="${c.qty}" onchange="setQty('${c.id}', this.value)"></td><td>${it.price * c.qty}</td><td><button onclick="removeFromCart('${c.id}')">✖</button></td>`; tb.appendChild(tr);
+      }
+      const t = computeTotals();
+      sel('totals').innerHTML = `Subtotal: <strong>${currency(t.subtotal)}</strong><br>Promo: <strong>– ${currency(t.promo)}</strong><br>Delivery: <strong>${currency(t.delivery)}</strong><br><span style="font-size:1.1rem">Grand Total: <strong>${currency(t.total)}</strong></span>`;
+    }
+
+    // ====== CHECKOUT & TRACKING ======
+    function checkout(){ if(app.cart.length===0) return alert('Cart is empty'); if(!app.user){ openAuth('login'); return alert('Please login to continue'); }
+      const t = computeTotals();
+      const orderId = 'MMF'+Date.now().toString().slice(-6);
+      const order = { id: orderId, items: app.cart.map(c=>({ id:c.id, qty:c.qty })), totals: t, when: new Date().toISOString(), address: app.user.address||'' };
+      app.lastOrder = order; app.orderHistory.unshift(order); app.cart=[]; save(); renderCart();
+
+      // Mailto summary
+      const lines = order.items.map(c=>{ const it=items.find(i=>i.id===c.id); return `${it.name} x ${c.qty} = ₹${it.price*c.qty}`; }).join('%0A');
+      const body = `Customer: ${encodeURIComponent(app.user.name)} (%3C${encodeURIComponent(app.user.email)}%3E)%0AAddress: ${encodeURIComponent(order.address)}%0A%0A${lines}%0A---%0ASubtotal: ₹${t.subtotal}%0APromo: –₹${t.promo}%0ADelivery: ₹${t.delivery}%0ATotal: ₹${t.total}%0AUPI: ${encodeURIComponent(UPI_ID)}%0ANo Cancellation`;
+      const mailto = `mailto:adityarvirat@gmail.com?subject=${encodeURIComponent('New Order '+orderId)}&body=${body}`;
+      window.open(mailto, '_blank');
+
+      // Update track UI
+      sel('trackOrderId').textContent = orderId; showPage('track');
+      progressTrack();
+      notify('Order '+orderId+' placed!');
+    }
+
+    function progressTrack(){ ['s1','s2','s3','s4'].forEach(id=> sel(id).classList.remove('active')); sel('s1').classList.add('active');
+      setTimeout(()=>{ sel('s1').classList.remove('active'); sel('s2').classList.add('active'); notify('Your order is packed 📦'); }, 3000);
+      setTimeout(()=>{ sel('s2').classList.remove('active'); sel('s3').classList.add('active'); notify('On the way 🚴'); }, 7000);
+      setTimeout(()=>{ sel('s3').classList.remove('active'); sel('s4').classList.add('active'); notify('Delivered ✅ Enjoy your meal!'); }, 12000);
+    }
+
+    // ====== REVIEWS ======
+    function openReview(id,name){ app.reviewFor = id; sel('revFor').textContent = 'For: '+name; sel('revText').value=''; sel('revRating').value='5'; sel('reviewModal').style.display='flex'; }
+    function submitReview(){ if(!app.user) return alert('Login to review'); const id = app.reviewFor; const txt = sel('revText').value.trim(); const rating = sel('revRating').value; app.reviews[id] = app.reviews[id]||[]; app.reviews[id].push({ u: app.user.name, r: rating, t: txt, at: Date.now() }); save(); sel('reviewModal').style.display='none'; renderMenu(); alert('Thanks for your review!'); }
+
+    // ====== INIT ======
+    function init(){
+      applyTheme();
+      if(app.user) applyUser();
+      renderMenu();
+      renderCart();
+      // Fill track if last order exists
+      if(app.lastOrder){ sel('trackOrderId').textContent = app.lastOrder.id; }
+    }
+
+    // ====== START ======
+    init();
+  </script>
+</body>
+</html>
